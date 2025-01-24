@@ -18,9 +18,9 @@ Este repositório tem como objetivo automatizar o provisionamento e a configura�
 1. [Pré-requisitos](#pré-requisitos)
 2. [Estrutura do Projeto](#estrutura-do-projeto)
 3. [Como Usar](#como-usar)
-   - [1. Inicializar a Máquina Virtual](#1-inicializar-a-máquina-virtual)
-   - [2. Conectar à Máquina Virtual](#2-conectar-à-máquina-virtual)
-   - [3. Executar Playbooks com Ansible](#3-executar-playbooks-com-ansible)
+   - [Inicializar a Máquina Virtual](#inicializar-a-máquina-virtual)
+   - [Conectar à Máquina Virtual](#conectar-a-maquina-virtual)
+   - [Executar Playbooks com Ansible](#executar-playbooks-com-ansible)
 4. [Playbooks Disponíveis](#playbooks)
 5. [Contribuindo](#contribuindo)
 6. [Licença](#licença)
@@ -74,15 +74,15 @@ Antes de começar, você precisa ter as seguintes ferramentas instaladas em seu 
    git clone https://github.com/Philipe7/devops_projeto.git
    cd devops_projeto
    
-2. **Inicialize a Máquina Virtual utilizando o Vagrant:** (#1-inicializar-a-máquina-virtual)
+2. **Inicialize a Máquina Virtual utilizando o Vagrant:** (inicializar-a-máquina-virtual)
    ```bash
    vagrant up
 
-4. **Conecte-se à Máquina Virtual:** (#2-conectar-à-máquina-virtual)
+4. **Conecte-se à Máquina Virtual:** (conectar-à-máquina-virtual)
    ```bash
    vagrant ssh
 
-6. **Execute os Playbooks do Ansible conforme necessário. Exemplo para configurar o SSH:** (#3-executar-playbooks-com-ansible)
+6. **Execute os Playbooks do Ansible conforme necessário. Exemplo para configurar o SSH:** (executar-playbooks-com-ansible)
    ```bash
    ansible-playbook -i /home/vagrant/devops_projeto/inventory/host.ini /home/vagrant/devops_projeto/playbooks/configuracao_ssh.yml
 
