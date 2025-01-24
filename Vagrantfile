@@ -14,7 +14,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
     sudo apt-get update -y > /dev/null 2>&1
-    sudo apt-get install -y git > /dev/null 2>&1
     sudo apt-get install -y openssh-server > /dev/null 2>&1
     sudo apt-get install -y ansible > /dev/null 2>&1
   SHELL
