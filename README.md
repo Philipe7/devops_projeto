@@ -1,4 +1,3 @@
-============================================================================================================================
 ## Integrantes da Equipe
 
 - **Luiz Philipe** (Responsável pelo projeto, desenvolvimento e automação)
@@ -10,8 +9,7 @@
 ## Professor
 
 - **Pedro Filho**
-============================================================================================================================
-
+---
 Este repositório tem como objetivo automatizar o provisionamento e a configuração de máquinas virtuais utilizando **Vagrant** e **Ansible**. A proposta é configurar a infraestrutura de uma máquina virtual com a instalação de ferramentas essenciais, como **SSH** e **Ansible**, além de aplicar playbooks para gerenciar e automatizar a configuração de serviços e recursos do sistema.
 
 
