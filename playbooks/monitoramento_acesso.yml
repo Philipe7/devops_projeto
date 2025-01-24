@@ -1,0 +1,22 @@
+---
+- name: Monitoramento de acesso
+  hosts: all
+  become: yes
+  tasks:
+    - name: Criar o diretório para armazenar os logs de acesso
+      file:
+        path: /dados/nfs
+        state: directory
+        mode: '0755'
+
+    - name: Configurar script para monitoramento de acesso
+      copy:
+        src: arquivos/monitoramento_acesso.sh
+        dest: /usr/local/bin/monitoramento_acesso.sh
+        mode: '0755'
+
+    - name: Adicionar script ao arquivo /etc/profile
+      lineinfile:
+        path: /etc/profile
+        line: "/usr/local/bin/monitoramento_acesso.sh"
+

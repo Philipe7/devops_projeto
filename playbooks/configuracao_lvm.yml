@@ -1,0 +1,33 @@
+---
+- name: Configuração do LVM
+  hosts: all
+  become: yes
+  tasks:
+    - name: Criar o Volume Group "dados"
+      lvg:
+        name: dados
+        devices:
+          - /dev/sdb
+          - /dev/sdc
+          - /dev/sdd
+
+    - name: Criar o Logical Volume "sistema"
+      lvol:
+        vg: dados
+        lv: sistema
+        size: 15G
+        state: present
+
+    - name: Formatar o Logical Volume
+      filesystem:
+        fstype: ext4
+        dev: /dev/dados/sistema
+
+    - name: Montar o Logical Volume em /dados
+      mount:
+        path: /dados
+        src: /dev/dados/sistema
+        fstype: ext4
+        state: mounted
+        opts: defaults
+

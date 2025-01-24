@@ -1,0 +1,10 @@
+---
+- name: Atualizar o sistema operacional
+  hosts: all
+  become: yes
+  tasks:
+    - name: Atualizar todos os pacotes
+      apt:
+        update_cache: yes
+        upgrade: dist
+

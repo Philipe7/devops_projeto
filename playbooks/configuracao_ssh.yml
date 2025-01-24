@@ -1,0 +1,28 @@
+---
+- name: Configuração do SSH
+  hosts: all
+  become: yes
+  tasks:
+    - name: Habilitar autenticação por chave pública no SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+    
+    - name: Bloquear login do root no SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin no'
+    
+    - name: Permitir apenas usuários do grupo acesso_ssh
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#AllowGroups'
+        line: 'AllowGroups acesso_ssh'
+    
+    - name: Criar grupo acesso_ssh
+      group:
+        name: acesso_ssh
+        state: present
+

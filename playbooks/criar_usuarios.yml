@@ -1,0 +1,13 @@
+---
+- name: Criar usuários
+  hosts: all
+  become: yes
+  tasks:
+    - name: Criar usuário com o primeiro nome
+      user:
+        name: "{{ item }}"
+        state: present
+        shell: /bin/bash
+      loop:
+        - philipe
+

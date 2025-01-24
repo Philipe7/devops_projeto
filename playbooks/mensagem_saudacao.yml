@@ -1,0 +1,12 @@
+---
+- name: Configuração da mensagem de saudação
+  hosts: all
+  become: yes
+  tasks:
+    - name: Adicionar a mensagem de saudação ao login
+      lineinfile:
+        path: /etc/motd
+        line: |
+          Acesso restrito apenas à pessoas com autorização expressa
+          Seu acesso está sendo monitorado !!!
+
