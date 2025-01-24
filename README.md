@@ -1,6 +1,19 @@
-# DevOps Projeto
+============================================================================================================================
+## Integrantes da Equipe
 
-Este repositório contém um conjunto de arquivos para automatização e provisionamento de máquinas virtuais usando **Vagrant**, **Ansible**, e **Git**. O objetivo é configurar uma máquina virtual com a instalação de ferramentas essenciais como **Git**, **SSH** e **Ansible**, além de aplicar playbooks para gerenciar e configurar diferentes aspectos do sistema.
+- **Luiz Philipe** (Responsável pelo projeto, desenvolvimento e automação)
+  
+## Disciplina
+
+- **Administração de Sistemas Abertos**
+
+## Professor
+
+- **Pedro Filho**
+============================================================================================================================
+
+Este repositório tem como objetivo automatizar o provisionamento e a configuração de máquinas virtuais utilizando **Vagrant** e **Ansible**. A proposta é configurar a infraestrutura de uma máquina virtual com a instalação de ferramentas essenciais, como **SSH** e **Ansible**, além de aplicar playbooks para gerenciar e automatizar a configuração de serviços e recursos do sistema.
+
 
 ## Índice
 
