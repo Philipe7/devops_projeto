@@ -74,15 +74,15 @@ Antes de começar, você precisa ter as seguintes ferramentas instaladas em seu 
    git clone https://github.com/Philipe7/devops_projeto.git
    cd devops_projeto
    
-2. **Inicialize a Máquina Virtual utilizando o Vagrant:** (inicializar-a-máquina-virtual)
+2. **Inicialize a Máquina Virtual utilizando o Vagrant:** 
    ```bash
    vagrant up
 
-4. **Conecte-se à Máquina Virtual:** (conectar-à-máquina-virtual)
+4. **Conecte-se à Máquina Virtual:**
    ```bash
    vagrant ssh
 
-6. **Execute os Playbooks do Ansible conforme necessário. Exemplo para configurar o SSH:** (executar-playbooks-com-ansible)
+6. **Execute os Playbooks do Ansible conforme necessário. Exemplo para configurar o SSH:**
    ```bash
    ansible-playbook -i /home/vagrant/devops_projeto/inventory/host.ini /home/vagrant/devops_projeto/playbooks/configuracao_ssh.yml
 
