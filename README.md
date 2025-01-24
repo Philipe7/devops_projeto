@@ -34,27 +34,28 @@ Antes de começar, você precisa ter as seguintes ferramentas instaladas em seu 
 
 ## [Estrutura do Projeto](#estrutura-do-projeto)
 
-devops_projeto/
-├── README.md
-├── Vagrantfile
-├── arquivos
-│   └── monitoramento_acesso.sh
-├── disk1_vdi.vdi
-├── disk2_vdi.vdi
-├── disk3_vdi.vdi
-├── inventory
-│   └── host.ini
-└── playbooks
-    ├── atualizar_sistema.yml
-    ├── configuracao_lvm.yml
-    ├── configuracao_nfs.yml
-    ├── configuracao_ssh.yml
-    ├── configuracao_sudo.yml
-    ├── configurar_hostname.yml
-    ├── criar_usuarios.yml
-    ├── mensagem_saudacao.yml
-    └── monitoramento_acesso.yml
-
+   ```bash
+   devops_projeto/
+   ├── README.md
+   ├── Vagrantfile
+   ├── arquivos
+   │   └── monitoramento_acesso.sh
+   ├── disk1_vdi.vdi
+   ├── disk2_vdi.vdi
+   ├── disk3_vdi.vdi
+   ├── inventory
+   │   └── host.ini
+   └── playbooks
+       ├── atualizar_sistema.yml
+       ├── configuracao_lvm.yml
+       ├── configuracao_nfs.yml
+       ├── configuracao_ssh.yml
+       ├── configuracao_sudo.yml
+       ├── configurar_hostname.yml
+       ├── criar_usuarios.yml
+       ├── mensagem_saudacao.yml
+       └── monitoramento_acesso.yml
+ ```
 
 ## [Como Usar](#como-usar)
 1. **Clone o repositório**:
