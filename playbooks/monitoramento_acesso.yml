@@ -9,14 +9,13 @@
         state: directory
         mode: '0755'
 
-    - name: Configurar script para monitoramento de acesso
-      copy:
-        src: arquivos/monitoramento_acesso.sh
-        dest: /usr/local/bin/monitoramento_acesso.sh
-        mode: '0755'
-
-    - name: Adicionar script ao arquivo /etc/profile
+    - name: Configurar o auditd para registrar logins
       lineinfile:
-        path: /etc/profile
-        line: "/usr/local/bin/monitoramento_acesso.sh"
+        path: /etc/audit/rules.d/audit.rules
+        line: "-w /var/log/auth.log -p wa -k monitoramento_acesso"
+        create: yes
 
+    - name: Reiniciar o serviço auditd para aplicar regras
+      service:
+        name: auditd
+        state: restarted
