@@ -2,7 +2,6 @@
   hosts: all
   become: yes
   tasks:
-  
     - name: Executar playbook de configuração do SSH
       import_playbook: playbooks/configuracao_ssh.yml
 
