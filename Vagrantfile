@@ -19,7 +19,7 @@ Vagrant.configure("2") do |config|
   SHELL
 
   config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "playbooks/playbook_principal.yml"
+    ansible.playbook = "playbooks/main.yml"
     ansible.run = "always"
   end
 end
