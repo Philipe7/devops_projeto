@@ -6,23 +6,51 @@
     - name: Habilitar autenticação por chave pública no SSH
       lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: '^#PasswordAuthentication'
+        regexp: '^#?PasswordAuthentication'
         line: 'PasswordAuthentication no'
     
     - name: Bloquear login do root no SSH
       lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: '^PermitRootLogin'
+        regexp: '^#?PermitRootLogin'
         line: 'PermitRootLogin no'
     
     - name: Permitir apenas usuários do grupo acesso_ssh
       lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: '^#AllowGroups'
+        regexp: '^#?AllowGroups'
         line: 'AllowGroups acesso_ssh'
     
     - name: Criar grupo acesso_ssh
       group:
         name: acesso_ssh
         state: present
+        
+    - name: Criar usuário philipe
+      user:
+        name: philipe
+        groups: acesso_ssh
+        append: yes
+        create_home: yes
+        shell: /bin/bash
 
+    - name: Criar diretório .ssh para o usuário philipe
+      file:
+        path: /home/philipe/.ssh
+        state: directory
+        owner: philipe
+        group: philipe
+        mode: '0700'
+
+    - name: Adicionar chave pública ao authorized_keys
+      copy:
+        dest: /home/philipe/.ssh/authorized_keys
+        content: "{{ lookup('file', 'id_rsa.pub') }}"
+        owner: philipe
+        group: philipe
+        mode: '0600'
+
+    - name: Reiniciar o serviço SSH para aplicar as mudanças
+      service:
+        name: ssh
+        state: restarted
