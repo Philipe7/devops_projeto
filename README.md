@@ -80,7 +80,7 @@ Antes de começar, você precisa ter as seguintes ferramentas instaladas em seu 
 
 4. **Conecte-se à Máquina Virtual:**
    ```bash
-   vagrant ssh
+   ssh -i ~/.ssh/id_rsa philipe@192.168.57.10
 
 6. **Execute os Playbooks do Ansible conforme necessário. Exemplo para configurar o SSH:**
    ```bash
