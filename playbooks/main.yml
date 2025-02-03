@@ -1,0 +1,166 @@
+---
+- name: Configuração do servidor
+  hosts: all
+  become: yes
+  tasks:
+
+    # Atualização do sistema
+    - name: Atualizar todos os pacotes
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    # Configuração do LVM
+    - name: Criar o Volume Group "dados"
+      lvg:
+        name: dados
+        devices:
+          - /dev/sdb
+          - /dev/sdc
+          - /dev/sdd
+
+    - name: Criar o Logical Volume "sistema"
+      lvol:
+        vg: dados
+        lv: sistema
+        size: 15G
+        state: present
+
+    - name: Formatar o Logical Volume
+      filesystem:
+        fstype: ext4
+        dev: /dev/dados/sistema
+
+    - name: Montar o Logical Volume em /dados
+      mount:
+        path: /dados
+        src: /dev/dados/sistema
+        fstype: ext4
+        state: mounted
+        opts: defaults
+
+    # Configuração do NFS
+    - name: Instalar pacotes NFS
+      apt:
+        name:
+          - nfs-kernel-server
+        state: present
+
+    - name: Criar o diretório /dados/nfs
+      file:
+        path: /dados/nfs
+        state: directory
+        owner: nfs-ifpb
+        group: nfs-ifpb
+        mode: '0755'
+
+    - name: Configurar exportação do diretório NFS
+      lineinfile:
+        path: /etc/exports
+        line: "/dados/nfs 192.168.57.0/24(rw,sync,no_subtree_check)"
+
+    - name: Reiniciar o serviço NFS
+      service:
+        name: nfs-kernel-server
+        state: restarted
+        enabled: yes
+
+    # Configuração do SSH
+    - name: Habilitar autenticação por chave pública no SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+
+    - name: Bloquear login do root no SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+
+    - name: Permitir apenas usuários do grupo acesso_ssh
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?AllowGroups'
+        line: 'AllowGroups acesso_ssh'
+
+    - name: Criar grupo acesso_ssh
+      group:
+        name: acesso_ssh
+        state: present
+
+    - name: Criar usuário philipe
+      user:
+        name: philipe
+        groups: acesso_ssh
+        append: yes
+        create_home: yes
+        shell: /bin/bash
+
+    - name: Criar diretório .ssh para o usuário philipe
+      file:
+        path: /home/philipe/.ssh
+        state: directory
+        owner: philipe
+        group: philipe
+        mode: '0700'
+
+    - name: Adicionar chave pública ao authorized_keys
+      copy:
+        dest: /home/philipe/.ssh/authorized_keys
+        content: "{{ lookup('file', 'id_rsa.pub') }}"
+        owner: philipe
+        group: philipe
+        mode: '0600'
+
+    - name: Reiniciar o serviço SSH para aplicar as mudanças
+      service:
+        name: ssh
+        state: restarted
+
+    # Configuração do Sudo
+    - name: Adicionar o grupo ifpb ao arquivo sudoers
+      lineinfile:
+        path: /etc/sudoers
+        regexp: '^%ifpb'
+        line: '%ifpb ALL=(ALL) NOPASSWD: ALL'
+
+    # Configuração do Hostname
+    - name: Alterar o hostname da máquina
+      hostname:
+        name: "p01_Philipe"
+
+    # Criação de usuários
+    - name: Criar usuário com o primeiro nome
+      user:
+        name: "{{ item }}"
+        state: present
+        shell: /bin/bash
+      loop:
+        - philipe
+
+    # Configuração da mensagem de saudação
+    - name: Adicionar a mensagem de saudação ao login
+      lineinfile:
+        path: /etc/motd
+        line: |
+          Acesso restrito apenas à pessoas com autorização expressa
+          Seu acesso está sendo monitorado !!!
+
+    # Monitoramento de acesso
+    - name: Criar o diretório para armazenar os logs de acesso
+      file:
+        path: /dados/nfs
+        state: directory
+        mode: '0755'
+
+    - name: Configurar o auditd para registrar logins
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: "-w /var/log/auth.log -p wa -k monitoramento_acesso"
+        create: yes
+
+    - name: Reiniciar o serviço auditd para aplicar regras
+      service:
+        name: auditd
+        state: restarted
