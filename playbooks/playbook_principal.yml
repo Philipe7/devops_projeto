@@ -2,15 +2,7 @@
   hosts: all
   become: yes
   tasks:
-    - name: Executar playbook de atualização do sistema
-      import_playbook: playbooks/atualizar_sistema.yml
-
-    - name: Executar playbook de configuração do LVM
-      import_playbook: playbooks/configuracao_lvm.yml
-
-    - name: Executar playbook de configuração do NFS
-      import_playbook: playbooks/configuracao_nfs.yml
-
+  
     - name: Executar playbook de configuração do SSH
       import_playbook: playbooks/configuracao_ssh.yml
 
@@ -25,6 +17,15 @@
 
     - name: Executar playbook de mensagem de saudação
       import_playbook: playbooks/mensagem_saudacao.yml
+      
+    - name: Executar playbook de atualização do sistema
+      import_playbook: playbooks/atualizar_sistema.yml
+
+    - name: Executar playbook de configuração do LVM
+      import_playbook: playbooks/configuracao_lvm.yml
+
+    - name: Executar playbook de configuração do NFS
+      import_playbook: playbooks/configuracao_nfs.yml
 
     - name: Executar playbook de monitoramento de acesso
       import_playbook: playbooks/monitoramento_acesso.yml
