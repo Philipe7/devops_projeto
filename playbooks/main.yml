@@ -36,7 +36,7 @@
       delay: 10
       until: package_install is success
 
-    # Configuração do LVM
+    # Verificação de discos disponíveis
     - name: Verificar se os discos existem
       stat:
         path: "{{ item }}"
@@ -46,11 +46,15 @@
         - /dev/sdd
       register: disks
 
+    - name: Exibir discos detectados
+      debug:
+        msg: "Discos disponíveis: {{ disks.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item') | list }}"
+
     - name: Criar o Volume Group "{{ volume_group }}"
       lvg:
         name: "{{ volume_group }}"
         devices: "{{ disks.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item') | list }}"
-      when: "{{ disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0 }}"
+      when: disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0
 
     - name: Criar o Logical Volume "{{ logical_volume }}"
       lvol:
@@ -58,11 +62,13 @@
         lv: "{{ logical_volume }}"
         size: 15G
         state: present
+      when: disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0
 
     - name: Formatar o Logical Volume
       filesystem:
         fstype: ext4
         dev: "/dev/{{ volume_group }}/{{ logical_volume }}"
+      when: disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0
 
     - name: Montar o Logical Volume em {{ mount_point }}
       mount:
@@ -71,118 +77,5 @@
         fstype: ext4
         state: mounted
         opts: defaults
+      when: disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0
 
-    # Configuração do NFS
-    - name: Criar o grupo e usuário NFS
-      group:
-        name: nfs-ifpb
-        state: present
-
-    - name: Criar usuário nfs-ifpb
-      user:
-        name: nfs-ifpb
-        group: nfs-ifpb
-        create_home: no
-
-    - name: Criar o diretório {{ nfs_export_dir }}
-      file:
-        path: "{{ nfs_export_dir }}"
-        state: directory
-        owner: nfs-ifpb
-        group: nfs-ifpb
-        mode: '0755'
-
-    - name: Configurar exportação do diretório NFS
-      lineinfile:
-        path: /etc/exports
-        line: "{{ nfs_export_dir }} {{ nfs_allowed_subnet }}(rw,sync,no_subtree_check)"
-        create: yes
-
-    - name: Reiniciar o serviço NFS
-      service:
-        name: nfs-kernel-server
-        state: restarted
-        enabled: yes
-
-    # Configuração do SSH
-    - name: Criar grupo {{ ssh_group }}
-      group:
-        name: "{{ ssh_group }}"
-        state: present
-
-    - name: Criar usuário {{ ssh_user }}
-      user:
-        name: "{{ ssh_user }}"
-        groups: "{{ ssh_group }}"
-        append: yes
-        create_home: yes
-        shell: /bin/bash
-
-    - name: Criar diretório .ssh para {{ ssh_user }}
-      file:
-        path: "/home/{{ ssh_user }}/.ssh"
-        state: directory
-        owner: "{{ ssh_user }}"
-        group: "{{ ssh_user }}"
-        mode: '0700'
-
-    - name: Adicionar chave pública ao authorized_keys
-      copy:
-        dest: "/home/{{ ssh_user }}/.ssh/authorized_keys"
-        content: "{{ lookup('file', 'files/id_rsa.pub') }}"
-        owner: "{{ ssh_user }}"
-        group: "{{ ssh_user }}"
-        mode: '0600'
-
-    - name: Configurar SSH para autenticação por chave e segurança
-      blockinfile:
-        path: /etc/ssh/sshd_config
-        block: |
-          PasswordAuthentication no
-          PermitRootLogin no
-          AllowGroups {{ ssh_group }}
-        marker: "# {mark} ANSIBLE MANAGED BLOCK"
-
-    - name: Reiniciar serviço SSH
-      service:
-        name: ssh
-        state: restarted
-
-    # Configuração do Sudo
-    - name: Criar grupo ifpb
-      group:
-        name: ifpb
-        state: present
-
-    - name: Adicionar o grupo ifpb ao sudoers
-      lineinfile:
-        path: /etc/sudoers
-        line: '%ifpb ALL=(ALL) NOPASSWD: ALL'
-
-    # Configuração do Hostname
-    - name: Alterar o hostname da máquina
-      hostname:
-        name: "p01_Philipe"
-
-    # Configuração da mensagem de boas-vindas
-    - name: Configurar mensagem de acesso no login
-      copy:
-        dest: /etc/motd
-        content: |
-          Acesso restrito apenas a pessoas com autorização expressa.
-          Seu acesso está sendo monitorado!
-
-    # Monitoramento de acesso
-    - name: Configurar o auditd para registrar logins
-      lineinfile:
-        path: /etc/audit/rules.d/audit.rules
-        line: "-w /var/log/auth.log -p wa -k monitoramento_acesso"
-        create: yes
-
-    - name: Recarregar regras do auditd
-      command: augenrules --load
-
-    - name: Reiniciar o serviço auditd para aplicar regras
-      service:
-        name: auditd
-        state: restarted
