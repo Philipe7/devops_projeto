@@ -1,9 +1,0 @@
----
-- name: Configurar hostname
-  hosts: all
-  become: yes
-  tasks:
-    - name: Alterar o hostname da máquina
-      hostname:
-        name: "p01_Philipe"
-
