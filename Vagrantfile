@@ -13,11 +13,6 @@ Vagrant.configure("2") do |config|
   config.vm.disk :disk, size: "10GB", name: "disk2.vdi", primary: false
   config.vm.disk :disk, size: "10GB", name: "disk3.vdi", primary: false
 
-  config.vm.provision "shell", inline: <<-SHELL
-    nohup sudo apt-get update -y
-    nohup sudo apt-get install -y openssh-server ansible
-  SHELL
-
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "playbooks/main.yml"
     ansible.version = "2.0"
