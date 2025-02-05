@@ -6,7 +6,7 @@ Vagrant.configure("2") do |config|
     vb.memory = "1024"
   end
 
-  config.vm.network "private_network", ip: "192.168.57.10"
+  config.vm.network "private_network", ip: "192.168.57.50"
   config.vm.hostname = "p01-LuizPhilipe"
 
   config.vm.disk :disk, size: "10GB", name: "disk1.vdi", primary: false
@@ -14,11 +14,12 @@ Vagrant.configure("2") do |config|
   config.vm.disk :disk, size: "10GB", name: "disk3.vdi", primary: false
 
   config.vm.provision "shell", inline: <<-SHELL
-    sudo apt-get update -y
-    sudo apt-get install -y openssh-server ansible
+    nohup sudo apt-get update -y
+    nohup sudo apt-get install -y openssh-server ansible
   SHELL
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "playbooks/main.yml"
+    ansible.version = "2.0"
   end
 end

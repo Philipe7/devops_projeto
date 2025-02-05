@@ -13,14 +13,14 @@
   tasks:
 
     # Atualização do sistema
-    - name: Atualizar todos os pacotes
+    - name: Atualizar lista de pacotes
       apt:
         update_cache: yes
-        upgrade: dist
-      register: apt_update
-      retries: 3
-      delay: 10
-      until: apt_update is success
+
+    - name: Atualizar todos os pacotes do sistema
+      apt:
+        name: '*'
+        state: latest
 
     # Instalação de pacotes necessários
     - name: Instalar pacotes essenciais
@@ -31,10 +31,6 @@
           - lvm2
           - openssh-server
         state: present
-      register: package_install
-      retries: 3
-      delay: 10
-      until: package_install is success
 
     # Verificação de discos disponíveis
     - name: Verificar se os discos existem
@@ -46,36 +42,142 @@
         - /dev/sdd
       register: disks
 
-    - name: Exibir discos detectados
-      debug:
-        msg: "Discos disponíveis: {{ disks.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item') | list }}"
-
     - name: Criar o Volume Group "{{ volume_group }}"
-      lvg:
-        name: "{{ volume_group }}"
-        devices: "{{ disks.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item') | list }}"
+      command: "vgcreate {{ volume_group }} {{ disks.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item') | join(' ') }}"
       when: disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0
 
     - name: Criar o Logical Volume "{{ logical_volume }}"
-      lvol:
-        vg: "{{ volume_group }}"
-        lv: "{{ logical_volume }}"
-        size: 15G
-        state: present
+      command: "lvcreate -L 15G -n {{ logical_volume }} {{ volume_group }}"
       when: disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0
 
     - name: Formatar o Logical Volume
-      filesystem:
-        fstype: ext4
-        dev: "/dev/{{ volume_group }}/{{ logical_volume }}"
+      command: "mkfs.ext4 /dev/{{ volume_group }}/{{ logical_volume }}"
       when: disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0
 
-    - name: Montar o Logical Volume em {{ mount_point }}
+    - name: Criar diretório para montagem
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+
+    - name: Montar o Logical Volume
       mount:
         path: "{{ mount_point }}"
         src: "/dev/{{ volume_group }}/{{ logical_volume }}"
         fstype: ext4
         state: mounted
-        opts: defaults
       when: disks.results | selectattr('stat.exists', 'equalto', true) | list | length > 0
+
+    - name: Adicionar ao fstab
+      lineinfile:
+        path: /etc/fstab
+        line: "/dev/{{ volume_group }}/{{ logical_volume }} {{ mount_point }} ext4 defaults 0 2"
+        create: yes
+
+    # Configuração do NFS
+    - name: Criar diretório {{ nfs_export_dir }}
+      file:
+        path: "{{ nfs_export_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Configurar exportação do diretório NFS
+      lineinfile:
+        path: /etc/exports
+        line: "{{ nfs_export_dir }} {{ nfs_allowed_subnet }}(rw,sync,no_subtree_check)"
+        create: yes
+
+    - name: Reiniciar o serviço NFS
+      service:
+        name: nfs-kernel-server
+        state: restarted
+
+    # Configuração do SSH
+    - name: Criar grupo {{ ssh_group }}
+      group:
+        name: "{{ ssh_group }}"
+        state: present
+
+
+    - name: Adicionar usuário philipe ao grupo sudo
+      user:
+        name: philipe
+        groups: sudo
+        append: yes
+
+    - name: Adicionar usuário philipe ao grupo sudo
+      user:
+        name: ifpb
+        groups: sudo
+        append: yes
+
+    - name: Criar usuário ifpb sem shell
+      user:
+        name: ifpb
+        shell: /usr/sbin/nologin
+        createhome: no
+        state: present
+
+    - name: Criar usuário {{ ssh_user }}
+      user:
+        name: "{{ ssh_user }}"
+        shell: /bin/bash
+        groups: "{{ ssh_group }}"
+        append: yes
+        createhome: yes
+
+    - name: Copiar chave pública para o usuário {{ ssh_user }}
+      authorized_key:
+        user: "{{ ssh_user }}"
+        state: present
+        key: "{{ lookup('file', '~/devops_projeto/chaves/id_rsa_philipe.pub') }}"
+
+    - name: Criar diretório .ssh para {{ ssh_user }}
+      file:
+        path: "/home/{{ ssh_user }}/.ssh"
+        state: directory
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+        mode: '0700'
+
+    - name: Configurar SSH
+      blockinfile:
+        path: /etc/ssh/sshd_config
+        block: |
+          PasswordAuthentication no
+          PermitRootLogin no
+          AllowGroups {{ ssh_group }}
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+
+    - name: Reiniciar serviço SSH
+      service:
+        name: ssh
+        state: restarted
+
+    # Configuração do Hostname
+    - name: Alterar o hostname
+      hostname:
+        name: p01-Philipe
+
+    # Configuração da mensagem de boas-vindas
+    - name: Configurar mensagem de acesso no login
+      copy:
+        dest: /etc/motd
+        content: |
+          Acesso restrito apenas a pessoas com autorização expressa.
+          Seu acesso está sendo monitorado!
+
+    # Monitoramento de acesso
+    - name: Configurar auditd
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: "-w /var/log/auth.log -p wa -k monitoramento_acesso"
+        create: yes
+
+    - name: Recarregar regras do auditd
+      command: augenrules --load
+
+    - name: Reiniciar auditd
+      service:
+        name: auditd
+        state: restarted
 
